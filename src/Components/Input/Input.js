@@ -1,37 +1,24 @@
-import { useState, useEffect } from 'react';
-import './Input.css';
-import Button from '../Button/Button';
+import React, { useEffect, useRef, useCallback } from "react";
+import "./Input.css";
+import Button from "../Button/Button";
 
 const Input = ({ addTask, isEditing, taskToEdit }) => {
-  const [input, setInput] = useState('');
+  const inputRef = useRef(null);
 
   useEffect(() => {
-    if (isEditing) {
-      setInput(taskToEdit);
-    } else {
-      setInput('');
-    }
+    inputRef.current.value = isEditing ? taskToEdit : "";
   }, [isEditing, taskToEdit]);
 
-  const handleChange = (e) => {
-    setInput(e.target.value);
-  };
-
-  const handleAddTask = () => {
-    addTask(input);
-    setInput('');
-  };
+  const handleAddTask = useCallback(() => {
+    addTask(inputRef.current.value);
+    inputRef.current.value = "";
+  }, [addTask]);
 
   return (
-    <div className='input'>
-      <input
-        type="text"
-        placeholder="Enter your task"
-        value={input}
-        onChange={handleChange}
-      />
-      <Button 
-        text={isEditing ? 'Update Task' : 'Add Task'}
+    <div className="input">
+      <input type="text" placeholder="Enter your task" ref={inputRef} />
+      <Button
+        text={isEditing ? "Update Task" : "Add Task"}
         onClick={handleAddTask}
       />
     </div>
@@ -39,4 +26,3 @@ const Input = ({ addTask, isEditing, taskToEdit }) => {
 };
 
 export default Input;
-

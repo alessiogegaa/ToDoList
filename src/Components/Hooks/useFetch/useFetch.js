@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export const useFetch = ({ url, METHOD = "GET", body = null, trigger }) => {
   const [data, setData] = useState(null);
@@ -17,12 +17,15 @@ export const useFetch = ({ url, METHOD = "GET", body = null, trigger }) => {
           },
         };
 
-        if ((METHOD === "POST" || METHOD === "PATCH" || METHOD === "PUT") && body) {
+        if (
+          (METHOD === "POST" || METHOD === "PATCH" || METHOD === "PUT") &&
+          body
+        ) {
           options.body = JSON.stringify(body);
         }
 
         if (METHOD === "DELETE" && body) {
-          options.body = JSON.stringify(body); 
+          options.body = JSON.stringify(body);
         }
 
         const res = await fetch(url, options);
@@ -40,11 +43,10 @@ export const useFetch = ({ url, METHOD = "GET", body = null, trigger }) => {
       }
     };
 
-    if (trigger) {  
+    if (trigger) {
       fetchData();
     }
   }, [url, METHOD, body, trigger]);
 
   return { data, loading, error };
 };
-

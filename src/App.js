@@ -12,58 +12,73 @@ const initialState = {
   newTaskData: null,
   taskToUpdate: null,
   deleteTaskId: null,
-  taskStatuses: {}
+  taskStatuses: {},
 };
 
 function taskReducer(state, action) {
   switch (action.type) {
-    case 'SET_TASKS':
+    case "SET_TASKS":
       return { ...state, tasks: action.payload };
 
-    case 'ADD_TASK':
+    case "ADD_TASK":
       return { ...state, newTaskData: action.payload, shouldPostTask: true };
 
-    case 'POST_TASK_SUCCESS':
-      return { 
-        ...state, 
-        tasks: [...state.tasks, action.payload], 
-        newTaskData: null, 
-        shouldPostTask: false 
+    case "POST_TASK_SUCCESS":
+      return {
+        ...state,
+        tasks: [...state.tasks, action.payload],
+        newTaskData: null,
+        shouldPostTask: false,
       };
 
-    case 'EDIT_TASK':
+    case "EDIT_TASK":
       return { ...state, isEditing: true, taskIndex: action.payload };
 
-    case 'UPDATE_TASK':
+    case "UPDATE_TASK":
       const updatedTasks = state.tasks.map((task, index) =>
         index === state.taskIndex
-          ? { ...task, title: action.payload.title, description: action.payload.description }
+          ? {
+              ...task,
+              title: action.payload.title,
+              description: action.payload.description,
+            }
           : task
       );
-      return { ...state, tasks: updatedTasks, isEditing: false, taskIndex: null, taskToUpdate: action.payload };
+      return {
+        ...state,
+        tasks: updatedTasks,
+        isEditing: false,
+        taskIndex: null,
+        taskToUpdate: action.payload,
+      };
 
-    case 'PATCH_TASK_SUCCESS':
+    case "PATCH_TASK_SUCCESS":
       return { ...state, taskToUpdate: null };
 
-    case 'DELETE_TASK':
+    case "DELETE_TASK":
       return { ...state, deleteTaskId: action.payload };
 
-    case 'DELETE_TASK_SUCCESS':
+    case "DELETE_TASK_SUCCESS":
       return {
         ...state,
         tasks: state.tasks.filter((task) => task.id !== state.deleteTaskId),
-        deleteTaskId: null
+        deleteTaskId: null,
       };
 
-    case 'UPDATE_STATUS':
+    case "UPDATE_STATUS":
       const updatedStatusTasks = state.tasks.map((task) =>
-        task.id === action.payload.id ? { ...task, status: action.payload.newStatus } : task
+        task.id === action.payload.id
+          ? { ...task, status: action.payload.newStatus }
+          : task
       );
       return {
         ...state,
         tasks: updatedStatusTasks,
-        taskStatuses: { ...state.taskStatuses, [action.payload.id]: action.payload.newStatus },
-        taskToUpdate: action.payload.taskToUpdate
+        taskStatuses: {
+          ...state.taskStatuses,
+          [action.payload.id]: action.payload.newStatus,
+        },
+        taskToUpdate: action.payload.taskToUpdate,
       };
 
     default:
@@ -73,7 +88,6 @@ function taskReducer(state, action) {
 
 function App() {
   const [state, dispatch] = useReducer(taskReducer, initialState);
-  
   const apiUrl = process.env.REACT_APP_API_URL;
 
   const { data, loading, error } = useFetch({ url: apiUrl, trigger: true });
@@ -84,9 +98,9 @@ function App() {
         id: todo.id,
         title: todo.title,
         description: todo.description,
-        status: todo.completed ? "Completed" : "In Progress"
+        status: todo.completed ? "Completed" : "In Progress",
       }));
-      dispatch({ type: 'SET_TASKS', payload: fetchedTasks });
+      dispatch({ type: "SET_TASKS", payload: fetchedTasks });
     }
   }, [data]);
 
@@ -99,20 +113,25 @@ function App() {
 
   useEffect(() => {
     if (postData) {
-      dispatch({ type: 'POST_TASK_SUCCESS', payload: postData });
+      dispatch({ type: "POST_TASK_SUCCESS", payload: postData });
     }
   }, [postData]);
 
   const { data: patchData, error: patchError } = useFetch({
     url: state.taskToUpdate ? `${apiUrl}/${state.taskToUpdate.id}` : null,
     METHOD: "PATCH",
-    body: state.taskToUpdate ? { title: state.taskToUpdate.title, completed: state.taskToUpdate.completed } : null,
+    body: state.taskToUpdate
+      ? {
+          title: state.taskToUpdate.title,
+          completed: state.taskToUpdate.completed,
+        }
+      : null,
     trigger: !!state.taskToUpdate,
   });
 
   useEffect(() => {
     if (patchData) {
-      dispatch({ type: 'PATCH_TASK_SUCCESS' });
+      dispatch({ type: "PATCH_TASK_SUCCESS" });
     }
   }, [patchData]);
 
@@ -124,7 +143,7 @@ function App() {
 
   useEffect(() => {
     if (deleteData) {
-      dispatch({ type: 'DELETE_TASK_SUCCESS' });
+      dispatch({ type: "DELETE_TASK_SUCCESS" });
     }
   }, [deleteData]);
 
@@ -135,33 +154,36 @@ function App() {
           title: newTask,
           description: newTask,
           id: state.tasks[state.taskIndex].id,
-          completed: state.tasks[state.taskIndex].status === "Completed"
+          completed: state.tasks[state.taskIndex].status === "Completed",
         };
-        dispatch({ type: 'UPDATE_TASK', payload: updatedTask });
+        dispatch({ type: "UPDATE_TASK", payload: updatedTask });
       } else {
         const taskBody = {
           title: newTask,
           description: newTask,
           completed: false,
         };
-        dispatch({ type: 'ADD_TASK', payload: taskBody });
+        dispatch({ type: "ADD_TASK", payload: taskBody });
       }
     }
   };
 
   const editTask = (index) => {
-    dispatch({ type: 'EDIT_TASK', payload: index });
+    dispatch({ type: "EDIT_TASK", payload: index });
   };
 
   const deleteTask = (index) => {
     const taskId = state.tasks[index].id;
-    dispatch({ type: 'DELETE_TASK', payload: taskId });
+    dispatch({ type: "DELETE_TASK", payload: taskId });
   };
 
   const updateTaskStatus = (id, title, newStatus) => {
     const completed = newStatus === "Completed";
     const taskToUpdate = { id, title, completed };
-    dispatch({ type: 'UPDATE_STATUS', payload: { id, newStatus, taskToUpdate } });
+    dispatch({
+      type: "UPDATE_STATUS",
+      payload: { id, newStatus, taskToUpdate },
+    });
   };
 
   const taskCounts = useMemo(() => {
@@ -182,7 +204,15 @@ function App() {
 
   if (loading) return <div>Loading...</div>;
   if (error || postError || deleteError || patchError)
-    return <div>Error: {error?.message || postError?.message || deleteError?.message || patchError?.message}</div>;
+    return (
+      <div>
+        Error:{" "}
+        {error?.message ||
+          postError?.message ||
+          deleteError?.message ||
+          patchError?.message}
+      </div>
+    );
 
   return (
     <>
@@ -201,7 +231,9 @@ function App() {
           text={item.title}
           editTask={() => editTask(index)}
           deleteTask={() => deleteTask(index)}
-          updateStatus={(newStatus, title) => updateTaskStatus(item.id, title, newStatus)}
+          updateStatus={(newStatus, title) =>
+            updateTaskStatus(item.id, title, newStatus)
+          }
           initialStatus={state.taskStatuses[item.id] || item.status}
         />
       ))}
